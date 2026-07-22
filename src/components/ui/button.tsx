@@ -1,0 +1,4 @@
+import type { ButtonHTMLAttributes } from "react";
+type ButtonProps = ButtonHTMLAttributes<HTMLButtonElement> & { variant?: "default" | "outline" | "ghost" | "inverse"; size?: "default" | "sm" };
+const styles = { default: "bg-[#172539] text-white hover:bg-[#2c4160]", outline: "border-2 border-[#172539] bg-transparent hover:bg-[#172539] hover:text-white", ghost: "bg-transparent hover:bg-[#172539]/10", inverse: "bg-[#f7f1e7] text-[#172539] hover:bg-white" };
+export function Button({ className = "", variant = "default", size = "default", type = "button", ...props }: ButtonProps) { return <button type={type} className={`inline-flex items-center justify-center gap-2 rounded-xl font-mono text-xs font-black uppercase tracking-[0.1em] transition-colors disabled:cursor-not-allowed disabled:opacity-50 ${size === "sm" ? "h-9 px-3" : "h-11 px-4"} ${styles[variant]} ${className}`} {...props} />; }

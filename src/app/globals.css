@@ -1,0 +1,13 @@
+@import "tailwindcss";
+:root { --background: #f7f1e7; --foreground: #172539; }
+* { box-sizing: border-box; }
+html { scroll-behavior: smooth; }
+body { background: var(--background); color: var(--foreground); font-family: Arial, Helvetica, sans-serif; }
+button, a { -webkit-tap-highlight-color: transparent; }
+@keyframes screen-reveal {
+  0% { opacity: 0.15; transform: scale(0.88); filter: brightness(1.45); }
+  55% { opacity: 1; transform: scale(1.025); filter: brightness(1.12); }
+  100% { opacity: 1; transform: scale(1); filter: brightness(1); }
+}
+
+.digivice-screen-transition { animation: screen-reveal 320ms cubic-bezier(.22, 1, .36, 1); }
