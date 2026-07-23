@@ -36,3 +36,28 @@ button, a { -webkit-tap-highlight-color: transparent; }
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after { animation-duration: .01ms !important; animation-iteration-count: 1 !important; scroll-behavior: auto !important; }
 }
+@keyframes attack-projectile-player { 0% { left: 5%; opacity: 0; transform: translateY(12px) scale(.3) rotate(0deg); } 14% { opacity: 1; } 72% { left: 77%; opacity: 1; transform: translateY(-5px) scale(1.08) rotate(210deg); } 100% { left: 84%; opacity: 0; transform: translateY(-5px) scale(.2) rotate(250deg); } }
+@keyframes attack-projectile-enemy { 0% { right: 5%; opacity: 0; transform: translateY(12px) scale(.3) rotate(0deg); } 14% { opacity: 1; } 72% { right: 77%; opacity: 1; transform: translateY(-5px) scale(1.08) rotate(-210deg); } 100% { right: 84%; opacity: 0; transform: translateY(-5px) scale(.2) rotate(-250deg); } }
+@keyframes attack-impact { 0%, 65% { opacity: 0; transform: translate(-50%, -50%) scale(.15); } 78% { opacity: 1; transform: translate(-50%, -50%) scale(1.65); } 100% { opacity: 0; transform: translate(-50%, -50%) scale(2.4); } }
+@keyframes attack-callout { 0% { opacity: 0; transform: translate(-50%, 7px) scale(.85); } 16%, 68% { opacity: 1; transform: translate(-50%, 0) scale(1); } 100% { opacity: 0; transform: translate(-50%, -7px) scale(.96); } }
+@keyframes attack-critical { 0%, 100% { filter: brightness(1); } 40% { filter: brightness(2.1) drop-shadow(0 0 12px #fdcc48); } }
+.run-attack-projectile { position: absolute; top: 48%; display: grid; place-items: center; width: 2.8rem; height: 2.8rem; border: 2px solid #172539; border-radius: 9999px; box-shadow: 3px 3px 0 #172539; animation: attack-projectile-player 620ms cubic-bezier(.2,.7,.2,1) both; }
+.run-attack-enemy .run-attack-projectile { animation-name: attack-projectile-enemy; }
+.run-attack-projectile span { font-family: monospace; font-size: 1.5rem; font-weight: 900; }
+.run-attack-impact { position: absolute; top: 50%; left: 83%; width: 4rem; height: 4rem; border: 3px solid currentColor; border-radius: 9999px; animation: attack-impact 620ms ease-out both; }
+.run-attack-enemy .run-attack-impact { left: 17%; }
+.run-attack-callout { animation: attack-callout 620ms ease-out both; }
+.run-attack-critical { animation: attack-projectile-player 620ms cubic-bezier(.2,.7,.2,1) both, attack-critical 620ms ease-out both; }
+.run-attack-enemy .run-attack-critical { animation-name: attack-projectile-enemy, attack-critical; }
+.run-attack-style-flame { color: #7e2e23; background: radial-gradient(circle at 32% 28%, #fff7af 0 11%, #fdcc48 28%, #f36d57 57%, #a4312d 100%); }
+.run-attack-style-frost { color: #1b4f74; background: radial-gradient(circle at 32% 28%, #fff 0 11%, #b9e8fb 28%, #79c8ea 57%, #376fba 100%); }
+.run-attack-style-electric { color: #504219; background: radial-gradient(circle at 32% 28%, #fff 0 11%, #fff7af 28%, #fdcc48 57%, #dd9c13 100%); }
+.run-attack-style-nature { color: #245b3f; background: radial-gradient(circle at 32% 28%, #efffd8 0 11%, #a9d383 28%, #63a46c 57%, #2b6d4f 100%); }
+.run-attack-style-data { color: #173e65; background: radial-gradient(circle at 32% 28%, #e2f5ff 0 11%, #79c8ea 32%, #4c90c7 62%, #315b9e 100%); }
+.run-attack-style-virus { color: #4a275e; background: radial-gradient(circle at 32% 28%, #ffd9fb 0 11%, #c682d8 28%, #7a4f9a 57%, #47225f 100%); }
+.run-attack-style-sonic { color: #405065; background: radial-gradient(circle at 32% 28%, #fff 0 11%, #dcebdc 32%, #9fb5b1 62%, #61747d 100%); }
+.run-timing-cursor { transition: left 30ms linear; }
+
+@media (prefers-reduced-motion: reduce) {
+  .run-attack-projectile, .run-attack-impact, .run-attack-callout { animation: none !important; opacity: 1; }
+}

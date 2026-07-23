@@ -30,11 +30,9 @@ export function useCollection() {
   }, []);
 
   function toggle(id: number) {
-    setIds((current) => {
-      const next = current.includes(id) ? current.filter((item) => item !== id) : [...current, id];
-      persist(next);
-      return next;
-    });
+    const next = ids.includes(id) ? ids.filter((item) => item !== id) : [...ids, id];
+    setIds(next);
+    persist(next);
   }
 
   function exportCollection() { return JSON.stringify({ version: 1, digimonIds: ids, exportedAt: new Date().toISOString() }, null, 2); }
