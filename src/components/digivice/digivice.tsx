@@ -3,6 +3,7 @@
 import Image from "next/image";
 import { useCallback, useEffect, useState } from "react";
 import type { Digimon } from "@/features/digimon/domain/digimon";
+import { useTamerData } from "@/features/tamer/presentation/use-tamer-data";
 
 type DigiviceProps = { initialDigimon: Digimon };
 type DeviceMode = "scan" | "profile" | "evo";
@@ -14,6 +15,7 @@ export function Digivice({ initialDigimon }: DigiviceProps) {
   const [isScanning, setIsScanning] = useState(false);
   const [mode, setMode] = useState<DeviceMode>("scan");
   const [screenTick, setScreenTick] = useState(0);
+  const { recordScan } = useTamerData();
 
   const selectMode = useCallback((nextMode: DeviceMode) => {
     setMode(nextMode);
@@ -27,11 +29,15 @@ export function Digivice({ initialDigimon }: DigiviceProps) {
 
     try {
       const response = await fetch(`/api/digimon/${id}`);
-      if (response.ok) setDigimon((await response.json()) as Digimon);
+      if (response.ok) {
+        const next = (await response.json()) as Digimon;
+        setDigimon(next);
+        recordScan(next);
+      }
     } finally {
       window.setTimeout(() => setIsScanning(false), 400);
     }
-  }, [selectMode]);
+  }, [recordScan, selectMode]);
 
   useEffect(() => {
     const triggerScan = () => void scan();

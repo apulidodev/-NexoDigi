@@ -46,4 +46,8 @@ export type ArchiveCatalog = {
   name: string;
   description: string;
   entries: ArchiveEntry[];
+  totalElements: number;
+  currentPage: number;
+  hasNextPage: boolean;
+  isAvailable: boolean;
 };
