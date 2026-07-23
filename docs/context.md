@@ -57,6 +57,7 @@ DAPI no ofrece una clasificación oficial por serie/anime (Adventure, 02, Tamers
 - Trivia basada en detalles de DAPI.
 - Comparador por ID de dos Digimon.
 - PWA/offline básico.
+- NexoRift: Digital Run local: ruta de cinco nodos, combate por turnos, recompensas, EVO, jefe final y récord local.
 
 ### Persistencia local
 
@@ -89,4 +90,4 @@ No crear una réplica completa del catálogo de DAPI en la base. Guardar IDs de 
 
 ## Próxima fase
 
-Consultar `docs/backend-agent-prompt.md`. Ese documento contiene alcance, modelo de datos, seguridad, tiempo real y criterios de aceptación para un agente encargado del backend.
+Consultar `docs/backend-agent-prompt.md` para la plataforma comunitaria y `docs/digital-run-backend-prompt.md` para la fase online del minijuego.

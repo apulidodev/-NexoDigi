@@ -11,3 +11,28 @@ button, a { -webkit-tap-highlight-color: transparent; }
 }
 
 .digivice-screen-transition { animation: screen-reveal 320ms cubic-bezier(.22, 1, .36, 1); }
+@keyframes rift-drift { from { background-position: 0 0, 0 0; } to { background-position: 0 90px, 120px 0; } }
+@keyframes run-strike { 0%, 100% { transform: translateX(0); } 45% { transform: translateX(11px) scale(1.025); filter: brightness(1.35); } }
+@keyframes run-hit { 0%, 100% { transform: translateX(0); } 18%, 54% { transform: translateX(-7px); } 36%, 72% { transform: translateX(7px); } }
+@keyframes run-guard { 0%, 100% { transform: scale(1); } 45% { transform: scale(.96); box-shadow: 0 0 0 8px rgba(121, 200, 234, .45); } }
+@keyframes damage-float { 0% { opacity: 0; transform: translateY(12px) scale(.8); } 18% { opacity: 1; } 100% { opacity: 0; transform: translateY(-33px) scale(1.12); } }
+@keyframes scan-glitch { 0%, 100% { filter: none; transform: translateX(0); } 20% { filter: hue-rotate(35deg) contrast(1.35); transform: translateX(2px); } 40% { filter: brightness(1.7); transform: translateX(-2px); } }
+@keyframes orbit-module { from { transform: rotate(0deg) translateX(30px) rotate(0deg); } to { transform: rotate(360deg) translateX(30px) rotate(-360deg); } }
+@keyframes evo-flash { 0%, 100% { opacity: 0; } 34%, 58% { opacity: .95; } }
+@keyframes evo-silhouette { 0% { opacity: .2; transform: scale(.72); filter: brightness(0); } 55% { opacity: 1; transform: scale(1.22); filter: brightness(3); } 100% { opacity: .75; transform: scale(1); filter: brightness(0); } }
+@keyframes evo-particle { from { transform: translateY(15px) scale(.3); opacity: 0; } 35% { opacity: 1; } to { transform: translateY(-85px) scale(1.5); opacity: 0; } }
+
+.rift-background { background-image: linear-gradient(rgba(121,200,234,.08) 1px, transparent 1px), linear-gradient(90deg, rgba(253,204,72,.07) 1px, transparent 1px); background-size: 22px 22px, 44px 44px; animation: rift-drift 10s linear infinite; }
+.run-fighter-attack { animation: run-strike 360ms ease-out; }
+.run-fighter-hit { animation: run-hit 420ms ease-out; }
+.run-fighter-guard { animation: run-guard 420ms ease-out; }
+.run-damage-float { animation: damage-float 680ms ease-out both; }
+.run-scan-glitch { animation: scan-glitch 640ms steps(2, end) infinite; }
+.run-orbit-module { animation: orbit-module 2.8s linear infinite; }
+.run-evo-flash { animation: evo-flash 900ms ease-in-out both; background: radial-gradient(circle, #fff7af 0%, #fdcc48 25%, transparent 68%); }
+.run-evo-silhouette { animation: evo-silhouette 900ms ease-in-out both; }
+.run-evo-particle { animation: evo-particle 900ms ease-out both; }
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after { animation-duration: .01ms !important; animation-iteration-count: 1 !important; scroll-behavior: auto !important; }
+}
