@@ -47,5 +47,6 @@ export async function PATCH(request: Request) {
   const { error: updateError } = await admin.from("appearance_suggestions").update(after).eq("id", suggestion.id);
   if (updateError) return NextResponse.json({ error: "No fue posible registrar la decisión." }, { status: 500 });
   await admin.from("moderation_audit_log").insert({ actor_id: actor.id, entity_type: "appearance_suggestion", entity_id: suggestion.id, action: input.data.decision, before_state: suggestion, after_state: { ...after, appearance_id: appearanceId }, reason: input.data.note ?? null });
+  await admin.from("notifications").insert({ user_id: suggestion.submitted_by, kind: "moderation", title: input.data.decision === "approved" ? "Aparición publicada" : "Actualización de tu propuesta", body: input.data.decision === "approved" ? "Tu propuesta fue verificada y ya aparece en el archivo comunitario." : input.data.decision === "changes_requested" ? "El staff solicitó cambios en tu propuesta." : "Tu propuesta no fue aprobada en esta revisión.", href: "/#comunidad" });
   return NextResponse.json({ suggestionId: suggestion.id, status: input.data.decision, appearanceId });
 }

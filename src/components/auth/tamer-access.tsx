@@ -13,7 +13,7 @@ export function TamerAccess() {
   const [mode, setMode] = useState<Mode>("sign-in");
   useEffect(() => { void fetch("/api/auth/session").then((response) => response.ok ? response.json() as Promise<Session> : { user: null }).then((data) => setSession(data.user)).catch(() => setSession(null)); }, []);
   async function signOut() { await fetch("/api/auth/sign-out", { method: "POST" }); setSession(null); }
-  if (session) return <div className="flex items-center gap-2"><span className="hidden max-w-28 truncate font-mono text-[10px] font-black uppercase sm:inline">@{session.profile?.handle ?? "tamer"}</span><Button size="sm" variant="outline" onClick={() => void signOut()}>Salir</Button></div>;
+  if (session) return <div className="flex items-center gap-2"><span className="hidden max-w-28 truncate font-mono text-[10px] font-black uppercase sm:inline">@{session.profile?.handle ?? "tamer"}</span>{["moderator", "admin"].includes(session.profile?.role ?? "") && <a href="/moderacion" className="hidden rounded-lg border-2 border-[#172539] bg-[#fdcc48] px-2 py-1 font-mono text-[10px] font-black uppercase sm:inline">Staff</a>}<Button size="sm" variant="outline" onClick={() => void signOut()}>Salir</Button></div>;
   return <><Button size="sm" variant="outline" onClick={() => { setMode("sign-in"); setIsOpen(true); }}>Acceso Tamer</Button><AnimatePresence>{isOpen && <AccessDialog mode={mode} onMode={setMode} onClose={() => setIsOpen(false)} onSession={(next) => { setSession(next); setIsOpen(false); }} />}</AnimatePresence></>;
 }
 
@@ -26,8 +26,10 @@ function AccessDialog({ mode, onMode, onClose, onSession }: { mode: Mode; onMode
     const body = { email: String(form.get("email") ?? ""), password: String(form.get("password") ?? ""), ...(mode === "sign-up" ? { handle: String(form.get("handle") ?? "") } : {}) };
     try {
       const response = await fetch(`/api/auth/${mode === "sign-up" ? "sign-up" : "sign-in"}`, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(body) });
-      const result = await response.json() as { error?: string; needsEmailConfirmation?: boolean };
-      if (!response.ok) throw new Error(result.error ?? "No fue posible continuar.");
+      const raw = await response.text();
+      let result: { error?: string; needsEmailConfirmation?: boolean } = {};
+      try { result = raw ? JSON.parse(raw) as { error?: string; needsEmailConfirmation?: boolean } : {}; } catch { /* Respuesta no JSON. */ }
+      if (!response.ok) throw new Error(result.error ?? (raw ? "El servidor devolvió una respuesta no válida." : "El servidor no respondió. Revisa las variables de Supabase en Vercel y el registro de Functions."));
       if (result.needsEmailConfirmation) { setMessage("Revisa tu correo para confirmar tu cuenta y después inicia sesión."); return; }
       const session = await fetch("/api/auth/session").then((value) => value.json() as Promise<Session>);
       if (session.user) onSession(session.user);
