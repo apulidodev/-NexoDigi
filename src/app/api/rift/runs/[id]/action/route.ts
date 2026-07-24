@@ -29,5 +29,6 @@ export async function POST(request: Request, { params }: { params: Promise<{ id:
   const outcome = { ...result, node: next.node, enemyMaxHp: enemyMaxHp(next.seed, next.node), enemyDapiId: dailyEnemyId(next.seed, next.node) };
   const { error: actionError } = await admin.from("rift_run_actions").insert({ run_id: run.id, user_id: user.id, action_id: input.data.actionId, action: input.data.action, outcome });
   if (actionError) return NextResponse.json({ error: "La acción fue procesada; vuelve a consultar la ruta." }, { status: 409 });
+  await admin.from("security_audit_events").insert({ user_id: user.id, category: "rift", action: "server_turn", metadata: { runId: run.id, action: input.data.action, node: next.node, status: next.status, score: next.score } });
   return NextResponse.json({ outcome, idempotent: false });
 }

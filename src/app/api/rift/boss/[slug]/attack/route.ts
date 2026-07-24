@@ -25,5 +25,6 @@ export async function POST(request: Request, { params }: { params: Promise<{ slu
   if (updateError) return NextResponse.json({ error: "El jefe recibió otra señal. Intenta de nuevo." }, { status: 409 });
   const { error: contributionError } = await admin.from("rift_global_boss_contributions").insert({ event_id: event.id, user_id: user.id, action_id: input.data.actionId, damage });
   if (contributionError) return NextResponse.json({ error: "Ataque aplicado; recarga el evento para confirmar." }, { status: 409 });
+  await admin.from("security_audit_events").insert({ user_id: user.id, category: "boss", action: "global_attack", metadata: { eventId: event.id, damage, currentHp: nextHp } });
   return NextResponse.json({ damage, currentHp: nextHp, maxHp: event.max_hp, defeated: nextHp === 0 });
 }
