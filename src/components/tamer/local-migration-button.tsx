@@ -1,25 +1,18 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { Button } from "@/components/ui/button";
 import type { DigimonSearchFilters } from "@/features/digimon/domain/digimon";
 
-type Props = { collection: number[]; team: Array<{ id: number }>; evoNotes: Record<number, string>; savedFilters: Array<{ label: string; filters: DigimonSearchFilters }>; history: Array<{ id: number; scannedAt: string }>; quizCorrectDates: string[] };
+type Props = { collection: number[]; team: Array<{ id: number; name?: string; image?: string }>; evoNotes: Record<number, string>; savedFilters: Array<{ label: string; filters: DigimonSearchFilters }>; history: Array<{ id: number; scannedAt: string }>; quizCorrectDates: string[] };
+type Payload = Pick<Props, "collection" | "team" | "evoNotes" | "savedFilters" | "history" | "quizCorrectDates">;
 
-export function LocalMigrationButton({ collection, team, evoNotes, savedFilters, history, quizCorrectDates }: Props) {
-  const [message, setMessage] = useState("");
-  const [isSyncing, setIsSyncing] = useState(false);
-  async function migrate() {
-    setMessage(""); setIsSyncing(true);
-    try {
-      const session = await fetch("/api/auth/session").then((response) => response.json() as Promise<{ user: unknown }>);
-      if (!session.user) throw new Error("Inicia sesión con tu cuenta Tamer para sincronizar.");
-      const response = await fetch("/api/tamer/local-migration", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ collection, team, evoNotes, savedFilters, history, quizCorrectDates }) });
-      const result = await response.json() as { error?: string; migrated?: { collection: number; team: number } };
-      if (!response.ok) throw new Error(result.error ?? "No fue posible sincronizar.");
-      setMessage(`Sincronizado: ${result.migrated?.collection ?? 0} señales y ${result.migrated?.team ?? 0} miembros de equipo. Tus datos locales se conservaron.`);
-    } catch (error) { setMessage(error instanceof Error ? error.message : "No fue posible sincronizar."); }
-    finally { setIsSyncing(false); }
-  }
+export function LocalMigrationButton(props: Props) {
+  const [message, setMessage] = useState(""); const [isSyncing, setIsSyncing] = useState(false); const restored = useRef(false);
+  const payload: Payload = useMemo(() => ({ collection: props.collection, team: props.team.map(({ id, name = "Señal", image }) => ({ id, name, image })), evoNotes: props.evoNotes, savedFilters: props.savedFilters, history: props.history, quizCorrectDates: props.quizCorrectDates }), [props.collection, props.team, props.evoNotes, props.savedFilters, props.history, props.quizCorrectDates]);
+  async function snapshot(showMessage = false) { const response = await fetch("/api/tamer/sync", { method: "PUT", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ payload }) }); const data = await response.json().catch(() => ({})) as { error?: string; snapshot?: { revision: number } }; if (!response.ok) throw new Error(data.error ?? "No fue posible guardar en la nube."); if (showMessage) setMessage(`Sincronización activa · revisión ${data.snapshot?.revision ?? ""}`); }
+  async function migrate() { setMessage(""); setIsSyncing(true); try { const session = await fetch("/api/auth/session").then((response) => response.json() as Promise<{ user: unknown }>); if (!session.user) throw new Error("Inicia sesión con tu cuenta Tamer para sincronizar."); const response = await fetch("/api/tamer/local-migration", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(payload) }); const result = await response.json() as { error?: string; migrated?: { collection: number; team: number } }; if (!response.ok) throw new Error(result.error ?? "No fue posible sincronizar."); await snapshot(); setMessage(`Sincronizado: ${result.migrated?.collection ?? 0} señales y ${result.migrated?.team ?? 0} miembros. La nube quedó activa.`); } catch (error) { setMessage(error instanceof Error ? error.message : "No fue posible sincronizar."); } finally { setIsSyncing(false); } }
+  useEffect(() => { if (restored.current) return; restored.current = true; void fetch("/api/tamer/sync").then((response) => response.ok ? response.json() : { snapshot: null }).then((data: { snapshot: { payload?: Payload } | null }) => { const cloud = data.snapshot?.payload; if (!cloud || props.collection.length || props.team.length || Object.keys(props.evoNotes).length) return; window.localStorage.setItem("nexodigi-collection", JSON.stringify(cloud.collection ?? [])); window.localStorage.setItem("nexodigi-tamer-data", JSON.stringify({ team: cloud.team ?? [], history: cloud.history ?? [], savedFilters: cloud.savedFilters ?? [], evoNotes: cloud.evoNotes ?? {}, quizCorrectDates: cloud.quizCorrectDates ?? [] })); window.dispatchEvent(new CustomEvent("nexodigi:collection-change", { detail: cloud.collection ?? [] })); window.dispatchEvent(new Event("nexodigi:tamer-change")); setMessage("Datos restaurados desde tu cuenta Tamer."); }).catch(() => {}); }, [props.collection.length, props.team.length, props.evoNotes]);
+  useEffect(() => { const timer = window.setTimeout(() => { void fetch("/api/tamer/sync", { method: "PUT", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ payload }) }).catch(() => {}); }, 1800); return () => window.clearTimeout(timer); }, [payload]);
   return <div className="text-right"><Button variant="inverse" onClick={() => void migrate()} disabled={isSyncing}>{isSyncing ? "Sincronizando..." : "Sincronizar Tamer"}</Button>{message && <p className="mt-2 max-w-72 text-right font-mono text-[10px] font-black text-[#405065]" role="status">{message}</p>}</div>;
 }

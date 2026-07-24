@@ -21,7 +21,9 @@ export function useDigitalRun() {
   useEffect(() => {
     const timer = window.setTimeout(() => {
       try { setRun(normalizeRun(JSON.parse(window.localStorage.getItem(runKey) ?? "null") as DigitalRun | null)); } catch { setRun(null); }
-      setRecord(readRecord()); setIsReady(true);
+      const localRecord = readRecord();
+      setRecord(localRecord); setIsReady(true);
+      void fetch("/api/auth/session").then((response) => response.ok ? response.json() as Promise<{ user: unknown }> : { user: null }).then((session) => { if (session.user && (localRecord.bestNode > 0 || localRecord.wins > 0)) return fetch("/api/tamer/rift-record", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(localRecord) }); return undefined; }).catch(() => {});
     }, 0);
     return () => window.clearTimeout(timer);
   }, []);
