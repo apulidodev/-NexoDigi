@@ -21,6 +21,7 @@ En Supabase Dashboard > SQL Editor, abre y ejecuta:
 - `supabase/migrations/202607240002_sync_idempotency.sql`
 - `supabase/migrations/202607240003_community_and_moderation.sql`
 - `supabase/migrations/202607240004_challenges_and_notifications.sql`
+- `supabase/migrations/202607240005_rift_online.sql`
 
 Crea perfiles de Tamer, datos privados sincronizables, series semilla y políticas RLS. El primer administrador se asigna manualmente desde SQL Editor después de crear su cuenta:
 
