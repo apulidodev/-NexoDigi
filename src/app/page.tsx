@@ -7,6 +7,7 @@ import { LandingActions, RadarButton, CollectionShortcut } from "@/components/la
 import { Badge } from "@/components/ui/badge";
 import { InfoHint } from "@/components/ui/info-hint";
 import { MotionReveal } from "@/components/ui/motion-reveal";
+import { TamerAccess } from "@/components/auth/tamer-access";
 import { getDigimon } from "@/features/digimon/application/get-digimon";
 import { fetchArchiveCatalogs } from "@/features/digimon/infrastructure/digi-archive-client";
 import { searchDigimon } from "@/features/digimon/infrastructure/digi-api-client";
@@ -24,7 +25,7 @@ export default async function Home() {
     <nav className="mx-auto flex w-full max-w-7xl items-center justify-between px-5 py-5 lg:px-8">
       <a className="flex items-center gap-3" href="#inicio" aria-label="NexoDigi, inicio"><span className="grid size-10 place-items-center rounded-xl border-2 border-[#172539] bg-[#fdcc48] font-mono text-lg font-black shadow-[4px_4px_0_#172539]">N</span><span className="font-mono text-sm font-black uppercase tracking-[0.18em]">NexoDigi</span></a>
       <div className="hidden items-center gap-7 font-mono text-xs font-bold uppercase tracking-widest md:flex"><a href="#archivo">Archivo</a><a href="#tamer">Tamer</a><a href="#nexorift">Run</a><a href="#mision">Misión</a><a href="#comunidad">Comunidad</a></div>
-      <CollectionShortcut />
+      <div className="flex items-center gap-2"><CollectionShortcut /><TamerAccess /></div>
     </nav>
 
     <section id="inicio" className="mx-auto grid w-full max-w-7xl gap-9 px-5 pb-20 pt-8 lg:grid-cols-[0.85fr_1.3fr_0.85fr] lg:items-center lg:px-8 lg:pb-28">
