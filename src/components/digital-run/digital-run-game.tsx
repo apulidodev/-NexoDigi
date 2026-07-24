@@ -15,7 +15,7 @@ import { useTamerData } from "@/features/tamer/presentation/use-tamer-data";
 
 type CombatEffects = { player: "idle" | "attack" | "hit" | "guard"; enemy: "idle" | "attack" | "hit"; playerDamage?: number; enemyDamage?: number };
 type AttackScene = { attack: AttackProfile; direction: "player" | "enemy"; critical?: boolean; key: number };
-type OnlineRun = { id: string; selected_dapi_id: number; seed: string; status: "active" | "completed" | "failed"; node: number; player_hp: number; player_energy: number; enemy_hp: number; action_count: number; score: number; enemyMaxHp?: number };
+type OnlineRun = { id: string; selected_dapi_id: number; seed: string; status: "active" | "completed" | "failed"; node: number; player_hp: number; player_energy: number; enemy_hp: number; action_count: number; score: number; enemyMaxHp?: number; enemyDapiId?: number };
 const idleEffects: CombatEffects = { player: "idle", enemy: "idle" };
 function wait(ms: number) { return new Promise((resolve) => window.setTimeout(resolve, ms)); }
 async function getDigimon(id: number) { const response = await fetch(`/api/digimon/${id}`); if (!response.ok) throw new Error("Digimon unavailable"); return (await response.json()) as Digimon; }
@@ -37,6 +37,8 @@ export function DigitalRunGame() {
   const [evolutionTarget, setEvolutionTarget] = useState<string | null>(null);
   const [onlineRun, setOnlineRun] = useState<OnlineRun | null>(null);
   const [onlinePartner, setOnlinePartner] = useState<Digimon | null>(null);
+  const [onlineEnemy, setOnlineEnemy] = useState<Digimon | null>(null);
+  const [onlineCombatEvent, setOnlineCombatEvent] = useState<{ action: "pulse" | "technique" | "guard"; enemyDamage: number; playerDamage: number; enemyDefeated: boolean; key: number } | null>(null);
   const [isOnlineBusy, setIsOnlineBusy] = useState(false);
   const [onlineMessage, setOnlineMessage] = useState("");
   const run = game.run;
@@ -56,7 +58,7 @@ export function DigitalRunGame() {
       const active = runs.find((item) => item.status === "active");
       if (!active) return;
       setOnlineRun(active);
-      try { setOnlinePartner(await getDigimon(active.selected_dapi_id)); } catch { setOnlineMessage("Ruta online recuperada; no fue posible cargar su compañero."); }
+      try { const [partner, enemy] = await Promise.all([getDigimon(active.selected_dapi_id), getDigimon(active.enemyDapiId ?? 1)]); setOnlinePartner(partner); setOnlineEnemy(enemy); } catch { setOnlineMessage("Ruta online recuperada; no fue posible cargar las señales."); }
     }).catch(() => {});
   }, []);
 
@@ -67,7 +69,8 @@ export function DigitalRunGame() {
       const [partner, response] = await Promise.all([getDigimon(selectedPartnerId), fetch("/api/rift/runs", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ dapiId: selectedPartnerId, mode: "daily" }) })]);
       const data = await response.json().catch(() => ({})) as { run?: OnlineRun; error?: string };
       if (!response.ok || !data.run) throw new Error(data.error ?? "No fue posible iniciar la ruta online.");
-      setOnlinePartner(partner); setOnlineRun(data.run); sounds.play("scan");
+      const enemy = await getDigimon(data.run.enemyDapiId ?? 1);
+      setOnlinePartner(partner); setOnlineEnemy(enemy); setOnlineRun(data.run); sounds.play("scan");
     } catch (reason) { setError(reason instanceof Error ? reason.message : "No fue posible iniciar la ruta online."); }
     finally { setIsOnlineBusy(false); }
   }
@@ -77,10 +80,12 @@ export function DigitalRunGame() {
     setIsOnlineBusy(true); setOnlineMessage("");
     try {
       const response = await fetch(`/api/rift/runs/${onlineRun.id}/action`, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ action, actionId: crypto.randomUUID() }) });
-      const data = await response.json().catch(() => ({})) as { outcome?: { state?: { node: number; playerHp: number; playerEnergy: number; enemyHp: number; actionCount: number; status: "active" | "completed" | "failed"; score: number }; enemyMaxHp?: number; enemyDamage?: number; playerDamage?: number }; error?: string };
+      const data = await response.json().catch(() => ({})) as { outcome?: { state?: { node: number; playerHp: number; playerEnergy: number; enemyHp: number; actionCount: number; status: "active" | "completed" | "failed"; score: number }; enemyMaxHp?: number; enemyDapiId?: number; enemyDamage?: number; playerDamage?: number; enemyDefeated?: boolean }; error?: string };
       if (!response.ok || !data.outcome?.state) throw new Error(data.error ?? "No fue posible validar la acción.");
       const state = data.outcome.state;
-      setOnlineRun((current) => current ? { ...current, node: state.node, player_hp: state.playerHp, player_energy: state.playerEnergy, enemy_hp: state.enemyHp, action_count: state.actionCount, status: state.status, score: state.score, enemyMaxHp: data.outcome?.enemyMaxHp } : current);
+      setOnlineRun((current) => current ? { ...current, node: state.node, player_hp: state.playerHp, player_energy: state.playerEnergy, enemy_hp: state.enemyHp, action_count: state.actionCount, status: state.status, score: state.score, enemyMaxHp: data.outcome?.enemyMaxHp, enemyDapiId: data.outcome?.enemyDapiId } : current);
+      setOnlineCombatEvent({ action, enemyDamage: data.outcome.enemyDamage ?? 0, playerDamage: data.outcome.playerDamage ?? 0, enemyDefeated: data.outcome.enemyDefeated ?? false, key: Date.now() });
+      if (data.outcome.enemyDapiId) { try { setOnlineEnemy(await getDigimon(data.outcome.enemyDapiId)); } catch { /* Conserva la señal ya mostrada. */ } }
       setOnlineMessage(state.status === "completed" ? "Rift estabilizado. Victoria registrada en el servidor." : state.status === "failed" ? "La señal dispersó tu ruta. Puedes volver al modo local o iniciar una ruta nueva." : data.outcome?.enemyDamage ? `Impacto confirmado: ${data.outcome.enemyDamage} de daño.` : "Acción validada por el Rift.");
       sounds.play(state.status === "completed" ? "win" : "attack");
     } catch (reason) { setOnlineMessage(reason instanceof Error ? reason.message : "No fue posible validar la acción."); }
@@ -129,7 +134,7 @@ export function DigitalRunGame() {
     finally { setEvolutionTarget(null); }
   }
 
-  return <section id="nexorift" className="rift-background relative overflow-hidden bg-[#172539] py-20 text-white"><RiftParticles /><div className="relative"><div className="mx-auto max-w-7xl px-5 lg:px-8"><div className="flex min-w-0 flex-col justify-between gap-5 lg:flex-row lg:items-end"><div className="min-w-0"><Badge className="!border-white !bg-[#f36d57] !text-white">MINIJUEGO LOCAL</Badge><div className="mt-5 flex min-w-0 items-start gap-2 sm:gap-3"><h2 className="min-w-0 break-words font-mono text-[2rem] font-black uppercase leading-none tracking-[-0.07em] sm:text-5xl">NexoRift: Digital Run.</h2><InfoHint className="mt-1" text="Combate por turnos con técnicas de DAPI, sincronización de ataque, energía y efectos locales. El récord se guarda en este navegador." /></div><p className="mt-4 max-w-2xl leading-7 text-white/70">Estabiliza cinco señales hostiles. Sincroniza técnicas, activa módulos y derrota al jefe del Rift.</p></div><RiftDailyStatus /><div className="w-full rounded-2xl border-2 border-white/30 bg-white/10 px-4 py-3 font-mono text-xs sm:w-auto"><p className="text-white/60">RÉCORD LOCAL</p><p className="mt-1 font-black">Nodo {game.record.bestNode}/5 · {game.record.wins} rutas completadas</p></div><button type="button" onClick={sounds.toggle} className="w-full rounded-xl border-2 border-white/40 bg-white/10 px-3 py-2 font-mono text-[10px] font-black uppercase sm:w-auto">{sounds.isMuted ? "Sonido: off" : "Sonido: on"}</button></div><div className="mt-8 min-w-0 rounded-[2rem] border-2 border-white/80 bg-[#f7f1e7] p-4 text-[#172539] shadow-[6px_6px_0_#f36d57] sm:p-7 sm:shadow-[8px_8px_0_#f36d57]">{onlineRun ? <OnlineRiftPanel run={onlineRun} partner={onlinePartner} busy={isOnlineBusy} message={onlineMessage} onAction={(action) => void resolveOnlineAction(action)} onLeave={() => setOnlineRun(null)} /> : !run ? <StartPanel selectedPartnerId={selectedPartnerId} onSelect={setSelectedPartnerId} team={tamer.team} options={partnerOptions} isLoadingPartners={isLoadingPartners} isStarting={isStarting} error={error} onStart={() => void start()} onStartOnline={() => void startOnline()} isOnlineBusy={isOnlineBusy} /> : <RunPanel run={run} isLoadingEnemy={isLoadingEnemy} error={error} effects={combatEffects} attackScene={attackScene} evolutionTarget={evolutionTarget} isResolving={isResolving} isTiming={isTiming} onFight={resolveAttack} onOpenTechnique={openTechnique} onCancelTiming={() => setIsTiming(false)} onReward={chooseReward} onFinish={game.finish} onReset={game.reset} />}</div></div></div></section>;
+  return <section id="nexorift" className="rift-background relative overflow-hidden bg-[#172539] py-20 text-white"><RiftParticles /><div className="relative"><div className="mx-auto max-w-7xl px-5 lg:px-8"><div className="flex min-w-0 flex-col justify-between gap-5 lg:flex-row lg:items-end"><div className="min-w-0"><Badge className="!border-white !bg-[#f36d57] !text-white">MINIJUEGO LOCAL</Badge><div className="mt-5 flex min-w-0 items-start gap-2 sm:gap-3"><h2 className="min-w-0 break-words font-mono text-[2rem] font-black uppercase leading-none tracking-[-0.07em] sm:text-5xl">NexoRift: Digital Run.</h2><InfoHint className="mt-1" text="Combate por turnos con técnicas de DAPI, sincronización de ataque, energía y efectos locales. El récord se guarda en este navegador." /></div><p className="mt-4 max-w-2xl leading-7 text-white/70">Estabiliza cinco señales hostiles. Sincroniza técnicas, activa módulos y derrota al jefe del Rift.</p></div><RiftDailyStatus /><div className="w-full rounded-2xl border-2 border-white/30 bg-white/10 px-4 py-3 font-mono text-xs sm:w-auto"><p className="text-white/60">RÉCORD LOCAL</p><p className="mt-1 font-black">Nodo {game.record.bestNode}/5 · {game.record.wins} rutas completadas</p></div><button type="button" onClick={sounds.toggle} className="w-full rounded-xl border-2 border-white/40 bg-white/10 px-3 py-2 font-mono text-[10px] font-black uppercase sm:w-auto">{sounds.isMuted ? "Sonido: off" : "Sonido: on"}</button></div><div className="mt-8 min-w-0 rounded-[2rem] border-2 border-white/80 bg-[#f7f1e7] p-4 text-[#172539] shadow-[6px_6px_0_#f36d57] sm:p-7 sm:shadow-[8px_8px_0_#f36d57]">{onlineRun ? <OnlineRiftPanel run={onlineRun} partner={onlinePartner} enemy={onlineEnemy} busy={isOnlineBusy} message={onlineMessage} event={onlineCombatEvent} onAction={(action) => void resolveOnlineAction(action)} onLeave={() => { setOnlineRun(null); setOnlineCombatEvent(null); }} /> : !run ? <StartPanel selectedPartnerId={selectedPartnerId} onSelect={setSelectedPartnerId} team={tamer.team} options={partnerOptions} isLoadingPartners={isLoadingPartners} isStarting={isStarting} error={error} onStart={() => void start()} onStartOnline={() => void startOnline()} isOnlineBusy={isOnlineBusy} /> : <RunPanel run={run} isLoadingEnemy={isLoadingEnemy} error={error} effects={combatEffects} attackScene={attackScene} evolutionTarget={evolutionTarget} isResolving={isResolving} isTiming={isTiming} onFight={resolveAttack} onOpenTechnique={openTechnique} onCancelTiming={() => setIsTiming(false)} onReward={chooseReward} onFinish={game.finish} onReset={game.reset} />}</div></div></div></section>;
 }
 
 function StartPanel({ selectedPartnerId, onSelect, team, options, isLoadingPartners, isStarting, error, onStart, onStartOnline, isOnlineBusy }: { selectedPartnerId: number | null; onSelect: (id: number) => void; team: Array<{ id: number; name: string; image?: string }>; options: DigimonSummary[]; isLoadingPartners: boolean; isStarting: boolean; error: string; onStart: () => void; onStartOnline: () => void; isOnlineBusy: boolean }) {

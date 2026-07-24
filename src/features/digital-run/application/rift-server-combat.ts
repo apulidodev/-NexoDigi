@@ -7,6 +7,8 @@ function hash(value: string) {
   return result >>> 0;
 }
 
+const dailyEnemyIds = [1, 3, 34, 83, 183, 202, 336];
+export function dailyEnemyId(seed: string, node: number) { return dailyEnemyIds[hash(`${seed}:enemy-id:${node}`) % dailyEnemyIds.length]; }
 export function enemyMaxHp(seed: string, node: number) { return 48 + node * 26 + (hash(`${seed}:enemy:${node}`) % 18); }
 
 export function resolveRiftAction(state: RiftState, action: RiftAction) {
