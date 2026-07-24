@@ -79,17 +79,24 @@ export function AttackSequence({ attack, direction = "player", critical = false 
 
 export function TimingMeter({ technique, onResolve, onCancel }: { technique: AttackProfile; onResolve: (multiplier: number, label: "PERFECT" | "GOOD" | "NORMAL") => void; onCancel: () => void }) {
   const [position, setPosition] = useState(0);
-  const startRef = useRef(0);
-  const frameRef = useRef(0);
+  const animationRef = useRef(0);
   useEffect(() => {
-    const update = (time: number) => { if (!startRef.current) startRef.current = time; setPosition(((time - startRef.current) % 1550) / 1550); frameRef.current = requestAnimationFrame(update); };
-    frameRef.current = requestAnimationFrame(update);
-    return () => cancelAnimationFrame(frameRef.current);
+    const startedAt = performance.now();
+    const tick = (now: number) => {
+      const phase = ((now - startedAt) % 1500) / 1500;
+      const nextPosition = phase <= 0.5 ? phase * 2 : 2 - phase * 2;
+      setPosition(nextPosition);
+      animationRef.current = requestAnimationFrame(tick);
+    };
+    animationRef.current = requestAnimationFrame(tick);
+    return () => cancelAnimationFrame(animationRef.current);
   }, []);
   function confirm() {
     const distance = Math.abs(position - 0.5);
     const label = distance < 0.055 ? "PERFECT" : distance < 0.16 ? "GOOD" : "NORMAL";
     onResolve(label === "PERFECT" ? 1.52 : label === "GOOD" ? 1.23 : 1, label);
   }
-  return <div className="mt-6 rounded-2xl border-2 border-[#172539] bg-[#172539] p-4 text-white"><div className="flex items-start justify-between gap-3"><div><p className="font-mono text-[10px] font-black uppercase tracking-widest text-[#fdcc48]">Sincronización de técnica</p><p className="mt-1 font-mono text-sm font-black uppercase">{technique.name}</p></div><button type="button" onClick={onCancel} className="font-mono text-[10px] font-black uppercase text-white/75 underline">Cancelar</button></div><p className="mt-3 text-xs text-white/75">Detén el pulso dentro del núcleo para amplificar el ataque.</p><button type="button" onClick={confirm} className="relative mt-4 h-8 w-full overflow-hidden rounded-full border-2 border-white bg-[#405065]" aria-label="Sincronizar técnica"><span className="absolute inset-y-0 left-[43%] w-[14%] border-x-2 border-[#fdcc48] bg-[#fdcc48]/25" /><span className="run-timing-cursor absolute top-1/2 size-5 -translate-x-1/2 -translate-y-1/2 rounded-full border-2 border-[#172539] bg-white shadow-[1px_1px_0_#fdcc48]" style={{ left: `${position * 100}%` }} /></button><div className="mt-2 flex justify-between font-mono text-[9px] font-black uppercase"><span>Normal</span><span className="text-[#fdcc48]">Perfect</span><span>Normal</span></div></div>;
+  const inPerfectZone = Math.abs(position - 0.5) < 0.055;
+  const inGoodZone = Math.abs(position - 0.5) < 0.16;
+  return <div className="mt-6 rounded-2xl border-2 border-[#172539] bg-[#172539] p-4 text-white"><div className="flex items-start justify-between gap-3"><div><p className="font-mono text-[10px] font-black uppercase tracking-widest text-[#fdcc48]">Sincronización de técnica</p><p className="mt-1 font-mono text-sm font-black uppercase">{technique.name}</p></div><button type="button" onClick={onCancel} className="font-mono text-[10px] font-black uppercase text-white/75 underline">Cancelar</button></div><p className="mt-3 text-xs text-white/75">El pulso va y vuelve. Presiona la barra cuando cruce el núcleo para amplificar el ataque.</p><button type="button" onClick={confirm} className="relative mt-4 h-10 w-full overflow-hidden rounded-full border-2 border-white bg-[#405065] focus:outline-none focus:ring-2 focus:ring-[#fdcc48] focus:ring-offset-2 focus:ring-offset-[#172539]" aria-label="Sincronizar técnica" aria-describedby="timing-result"><span className="absolute inset-y-0 left-[43%] w-[14%] border-x-2 border-[#fdcc48] bg-[#fdcc48]/25" /><span className="absolute left-1/2 top-1/2 h-7 w-px -translate-x-1/2 -translate-y-1/2 bg-[#fdcc48]" /><span className={`run-timing-cursor absolute top-1/2 grid size-6 -translate-x-1/2 -translate-y-1/2 place-items-center rounded-full border-2 border-[#172539] bg-white font-mono text-[8px] font-black text-[#172539] shadow-[1px_1px_0_#fdcc48] ${inPerfectZone ? "run-timing-perfect" : inGoodZone ? "run-timing-good" : ""}`} style={{ left: `${Math.max(3, Math.min(97, position * 100))}%` }}>●</span></button><div id="timing-result" className="mt-2 flex justify-between font-mono text-[9px] font-black uppercase"><span>Normal</span><span className={inPerfectZone ? "text-[#fdcc48]" : "text-white/60"}>{inPerfectZone ? "¡Perfect!" : inGoodZone ? "Good" : "Perfect"}</span><span>Normal</span></div></div>;
 }

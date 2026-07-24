@@ -56,7 +56,9 @@ button, a { -webkit-tap-highlight-color: transparent; }
 .run-attack-style-data { color: #173e65; background: radial-gradient(circle at 32% 28%, #e2f5ff 0 11%, #79c8ea 32%, #4c90c7 62%, #315b9e 100%); }
 .run-attack-style-virus { color: #4a275e; background: radial-gradient(circle at 32% 28%, #ffd9fb 0 11%, #c682d8 28%, #7a4f9a 57%, #47225f 100%); }
 .run-attack-style-sonic { color: #405065; background: radial-gradient(circle at 32% 28%, #fff 0 11%, #dcebdc 32%, #9fb5b1 62%, #61747d 100%); }
-.run-timing-cursor { transition: left 30ms linear; }
+.run-timing-cursor { transition: left 28ms linear, box-shadow 120ms ease, transform 120ms ease; will-change: left, transform; }
+.run-timing-good { box-shadow: 0 0 0 4px rgba(121, 200, 234, .55), 1px 1px 0 #fdcc48; }
+.run-timing-perfect { transform: translate(-50%, -50%) scale(1.18); box-shadow: 0 0 0 5px rgba(253, 204, 72, .7), 0 0 18px rgba(253, 204, 72, .9); }
 
 @media (prefers-reduced-motion: reduce) {
   .run-attack-projectile, .run-attack-impact, .run-attack-callout { animation: none !important; opacity: 1; }
