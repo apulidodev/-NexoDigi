@@ -24,5 +24,6 @@ export async function POST(request: Request) {
   if (error || !data) return NextResponse.json({ error: "No fue posible guardar la sugerencia." }, { status: 500 });
   const { error: sourcesError } = await supabase.from("appearance_suggestion_sources").insert(suggestion.sources.map((source) => ({ suggestion_id: data.id, url: source.url, title: source.title, note: source.note ?? null })));
   if (sourcesError) return NextResponse.json({ error: "La sugerencia se guardó, pero fallaron sus fuentes." }, { status: 500 });
+  await supabase.from("notifications").insert({ user_id: user.id, kind: "system", title: "Propuesta recibida", body: "Tu aparición fue enviada a revisión del staff.", href: "/#comunidad" });
   return NextResponse.json({ suggestionId: data.id }, { status: 201 });
 }

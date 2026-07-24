@@ -1,0 +1,7 @@
+import { NextResponse } from "next/server";
+import { z } from "zod";
+import { createSupabaseAdminClient } from "@/lib/supabase/admin";
+import { createSupabaseServerClient } from "@/lib/supabase/server";
+export const runtime="nodejs";
+const schema=z.object({key:z.enum(["collection_saved","rift_completed","appearance_proposed"]),amount:z.number().int().min(1).max(10).default(1)});
+export async function POST(request:Request){const input=schema.safeParse(await request.json().catch(()=>null));if(!input.success)return NextResponse.json({error:"Evento inválido."},{status:400});const s=await createSupabaseServerClient();const{data:{user}}=await s.auth.getUser();if(!user)return NextResponse.json({ok:false},{status:401});const a=createSupabaseAdminClient();const now=new Date().toISOString();const{data:challenges}=await a.from("challenge_definitions").select("id,target_value").eq("is_published",true).eq("goal_key",input.data.key).lte("starts_at",now).gte("ends_at",now);for(const c of challenges??[]){const{data:old}=await a.from("challenge_progress").select("progress_value").eq("challenge_id",c.id).eq("user_id",user.id).maybeSingle();const value=Math.min(c.target_value,(old?.progress_value??0)+input.data.amount);await a.from("challenge_progress").upsert({challenge_id:c.id,user_id:user.id,progress_value:value,completed_at:value>=c.target_value?now:null},{onConflict:"challenge_id,user_id"});}return NextResponse.json({ok:true,updated:challenges?.length??0});}
