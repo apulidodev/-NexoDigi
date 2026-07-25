@@ -1,4 +1,4 @@
-﻿"use client";
+"use client";
 
 import { useEffect, useMemo, useState } from "react";
 import { Badge } from "@/components/ui/badge";
@@ -47,7 +47,7 @@ export function BadgeCabinet() {
     {payload?.error && <p className="mt-8 rounded-xl border-2 border-[#172539] bg-white p-4 text-sm">{payload.error}</p>}
     {payload && !payload.signedIn && <p className="mt-7 rounded-xl border-2 border-[#172539] bg-[#f7f1e7] p-4 text-sm shadow-[3px_3px_0_#172539]">Explora el catálogo. Inicia sesión como Tamer para guardar el progreso y desbloquear tus propias insignias.</p>}
     {toast && <p role="status" className="mt-5 rounded-xl border-2 border-[#172539] bg-[#fdcc48] p-4 text-sm font-bold shadow-[3px_3px_0_#172539]">{toast}</p>}
-    {payload?.signedIn && <button type="button" onClick={() => void reconcile()} className="mt-5 rounded-xl border-2 border-[#172539] bg-white px-4 py-2 font-mono text-xs font-black uppercase shadow-[3px_3px_0_#172539] transition hover:-translate-y-0.5">Sincronizar hitos anteriores</button>}
+    {payload?.signedIn && <button type="button" onClick={() => void reconcile()} className="mt-5 w-full rounded-xl border-2 border-[#172539] bg-white px-4 py-3 text-center font-mono text-xs font-black uppercase shadow-[3px_3px_0_#172539] transition hover:-translate-y-0.5 sm:w-auto">Sincronizar hitos anteriores</button>}
     <div className="mt-8 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">{payload?.badges.map((medal) => {
       const wonAt = awards.get(medal.id);
       const current = Math.min(progress.get(medal.id) ?? 0, medal.target_value);
