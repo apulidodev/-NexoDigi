@@ -1,0 +1,16 @@
+﻿"use client";
+
+import { useEffect, useMemo, useState } from "react";
+import { Button } from "@/components/ui/button";
+
+type Badge = { id: string; name: string; rarity: string };
+type Data = { badges: Badge[]; awarded: Array<{ badge_id: string }>; signedIn: boolean };
+
+export function BadgePrivacySettings() {
+  const [show, setShow] = useState(true); const [featured, setFeatured] = useState<string[]>([]); const [data, setData] = useState<Data | null>(null); const [message, setMessage] = useState("");
+  useEffect(() => { const timer = window.setTimeout(() => { void Promise.all([fetch("/api/badges/preferences").then((response) => response.json()), fetch("/api/badges").then((response) => response.json())]).then(([preferences, medals]) => { setShow(preferences.preferences?.show_badges ?? true); setFeatured(preferences.preferences?.featured_badge_ids ?? []); setData(medals); }).catch(() => setMessage("No fue posible cargar las preferencias de insignias.")); }, 0); return () => window.clearTimeout(timer); }, []);
+  const owned = useMemo(() => { const won = new Set(data?.awarded.map((award) => award.badge_id) ?? []); return data?.badges.filter((badge) => won.has(badge.id)) ?? []; }, [data]);
+  function toggle(id: string) { setFeatured((current) => current.includes(id) ? current.filter((value) => value !== id) : current.length < 4 ? [...current, id] : current); }
+  async function save() { const response = await fetch("/api/badges/preferences", { method: "PUT", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ showBadges: show, featuredBadgeIds: featured }) }); const result = await response.json().catch(() => ({})); setMessage(response.ok ? "Preferencias de medallero guardadas." : result.error ?? "No fue posible guardar las preferencias."); }
+  return <section className="rounded-2xl border-2 border-[#172539] bg-[#79c8ea] p-5"><p className="font-mono text-[10px] font-black uppercase">Privacidad del medallero</p><p className="mt-2 text-sm text-[#173e65]">Elige si tus insignias se muestran en tu perfil público y destaca hasta cuatro.</p><label className="mt-4 flex items-center gap-3 rounded-xl border-2 border-[#172539] bg-white p-3 text-sm font-bold"><input type="checkbox" checked={show} onChange={(event) => setShow(event.target.checked)} className="size-4 accent-[#172539]" /> Mostrar mis insignias públicas</label>{show && <div className="mt-4"><p className="font-mono text-[10px] font-black uppercase">Destacadas ({featured.length}/4)</p>{owned.length ? <div className="mt-2 grid gap-2 sm:grid-cols-2">{owned.map((badge) => <label key={badge.id} className={`flex cursor-pointer items-center gap-2 rounded-lg border-2 border-[#172539] p-2 text-xs font-bold ${featured.includes(badge.id) ? "bg-[#fdcc48]" : "bg-white"}`}><input type="checkbox" checked={featured.includes(badge.id)} onChange={() => toggle(badge.id)} disabled={!featured.includes(badge.id) && featured.length >= 4} />{badge.name}</label>)}</div> : <p className="mt-2 text-sm">Obtén una insignia para poder destacarla.</p>}</div>}<div className="mt-4"><Button size="sm" type="button" onClick={() => void save()}>Guardar preferencias</Button></div>{message && <p className="mt-3 text-sm font-bold" role="status">{message}</p>}</section>;
+}

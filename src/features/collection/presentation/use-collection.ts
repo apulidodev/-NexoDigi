@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import { useEffect, useState } from "react";
 
@@ -33,7 +33,7 @@ export function useCollection() {
     const next = ids.includes(id) ? ids.filter((item) => item !== id) : [...ids, id];
     setIds(next);
     persist(next);
-    if (!ids.includes(id)) { void fetch("/api/challenges/event", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ key: "collection_saved", amount: 1 }) }).catch(() => {}); }
+    if (!ids.includes(id)) { void Promise.all([fetch("/api/challenges/event", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ key: "collection_saved", amount: 1 }) }), fetch("/api/badges/event", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ key: "collection_saved", amount: 1, sourceId: String(id) }) })]).then(async ([, badgeResponse]) => { const badgeData = await badgeResponse.json().catch(() => null) as { unlocked?: Array<{ name: string }> } | null; if (badgeData?.unlocked?.length) window.dispatchEvent(new CustomEvent("nexodigi:badge-awarded", { detail: badgeData.unlocked })); }).catch(() => {}); }
   }
 
   function exportCollection() { return JSON.stringify({ version: 1, digimonIds: ids, exportedAt: new Date().toISOString() }, null, 2); }
