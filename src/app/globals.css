@@ -63,3 +63,5 @@ button, a { -webkit-tap-highlight-color: transparent; }
 @media (prefers-reduced-motion: reduce) {
   .run-attack-projectile, .run-attack-impact, .run-attack-callout { animation: none !important; opacity: 1; }
 }
+@keyframes rift-fighter-enter { from { opacity: 0; transform: translateY(14px) scale(.96); filter: brightness(1.4); } to { opacity: 1; transform: translateY(0) scale(1); filter: brightness(1); } }
+.rift-fighter-enter { animation: rift-fighter-enter 420ms cubic-bezier(.22,1,.36,1) both; }
