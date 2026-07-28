@@ -1,5 +1,6 @@
 "use client";
 
+import Image from "next/image";
 import { AnimatePresence, motion, useReducedMotion } from "motion/react";
 import { Button } from "@/components/ui/button";
 
@@ -16,7 +17,17 @@ export function RiftCombatFlow({ phase, enemyName, node, hpPercent }: { phase: P
   const reduced = useReducedMotion();
   const enemyIntent = hpPercent <= 28 ? "Sobrecarga crítica" : node === 5 ? "Ataque de núcleo" : phase === "ready" ? "Analizando patrón" : "Señal inestable";
   const current = copy[phase];
-  return <div className="mt-4 grid gap-3 rounded-2xl border-2 border-[#172539] bg-[#172539] p-3 text-white sm:grid-cols-[1fr_auto] sm:items-center"><div className="min-w-0"><p className="font-mono text-[10px] font-black uppercase tracking-widest text-[#fdcc48]">Flujo de combate</p><AnimatePresence mode="wait"><motion.div key={phase} initial={reduced ? false : { opacity: 0, y: 7 }} animate={{ opacity: 1, y: 0 }} exit={reduced ? undefined : { opacity: 0, y: -7 }} transition={{ duration: .18 }}><p className="mt-1 font-mono text-sm font-black uppercase">{current.label}</p><p className="mt-1 text-xs text-white/70">{current.detail}</p></motion.div></AnimatePresence></div><div className="rounded-xl border border-white/30 bg-white/10 p-2 text-right"><p className="font-mono text-[9px] font-black uppercase text-white/65">Intención · {enemyName}</p><p className="mt-1 font-mono text-xs font-black text-[#fdcc48]">{enemyIntent}</p></div><div className="sm:col-span-2 flex gap-1" aria-hidden="true">{(["ready", "charge", "impact", "counter", "resolve"] as Phase[]).map((step) => <i key={step} className={`h-1 flex-1 rounded-full ${step === phase ? current.tone : "bg-white/20"}`} />)}</div></div>;
+  return <div className="mt-4 grid gap-3 rounded-2xl border-2 border-[#172539] bg-[#172539] p-3 text-white sm:grid-cols-[1fr_auto] sm:items-center">
+    <div className="min-w-0">
+      <p className="font-mono text-[10px] font-black uppercase tracking-widest text-[#fdcc48]">Flujo de combate</p>
+      <AnimatePresence mode="wait"><motion.div key={phase} initial={reduced ? false : { opacity: 0, y: 7 }} animate={{ opacity: 1, y: 0 }} exit={reduced ? undefined : { opacity: 0, y: -7 }} transition={{ duration: .18 }}><p className="mt-1 font-mono text-sm font-black uppercase">{current.label}</p><p className="mt-1 text-xs text-white/70">{current.detail}</p></motion.div></AnimatePresence>
+    </div>
+    <div className="flex items-center gap-2 rounded-xl border border-white/30 bg-white/10 p-2 text-right">
+      {node === 5 && <Image aria-hidden="true" src="/assets/rift/rift-boss-core.png" alt="" width={76} height={76} unoptimized className="rift-boss-core size-12 object-contain" />}
+      <div><p className="font-mono text-[9px] font-black uppercase text-white/65">Intención · {enemyName}</p><p className="mt-1 font-mono text-xs font-black text-[#fdcc48]">{enemyIntent}</p></div>
+    </div>
+    <div className="sm:col-span-2 flex gap-1" aria-hidden="true">{(["ready", "charge", "impact", "counter", "resolve"] as Phase[]).map((step) => <i key={step} className={`h-1 flex-1 rounded-full ${step === phase ? current.tone : "bg-white/20"}`} />)}</div>
+  </div>;
 }
 
 export function RiftRewardDeck({ canEvolve, onSelect }: { canEvolve: boolean; onSelect: (kind: "heal" | "module" | "evolution") => void }) {

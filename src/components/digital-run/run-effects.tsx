@@ -70,13 +70,28 @@ export function ModuleOrbit({ modules }: { modules: number }) {
   return <div className="relative grid size-14 place-items-center rounded-full border-2 border-[#172539] bg-[#79c8ea] shadow-[2px_2px_0_#172539]"><span className="font-mono text-[9px] font-black">RIFT<br />CORE</span>{Array.from({ length: Math.min(modules, 5) }).map((_, index) => <i key={index} aria-hidden="true" className="run-orbit-module absolute size-2 rounded-full border border-[#172539] bg-[#fdcc48]" style={{ animationDelay: `${index * -0.45}s` }} />)}</div>;
 }
 
-export function EvolutionOverlay({ image, targetName }: { image?: string; targetName: string }) {
-  return <div className="absolute inset-0 z-30 grid place-items-center overflow-hidden rounded-[1.6rem] bg-[#172539]/90 text-center text-white"><div className="run-evo-flash absolute inset-0" />{Array.from({ length: 18 }).map((_, index) => <i key={index} className="run-evo-particle absolute size-1 rounded-full bg-[#fdcc48]" style={{ left: `${12 + (index * 29) % 76}%`, top: `${10 + (index * 47) % 76}%`, animationDelay: `${index * -0.06}s` }} />)}<div className="relative z-10"><p className="font-mono text-[10px] font-black uppercase tracking-[.22em]">Evolution sequence</p>{image && <Image src={image} alt="" width={140} height={140} unoptimized className="run-evo-silhouette mx-auto my-4 size-28 object-contain" />}<p className="font-mono text-lg font-black uppercase">{targetName}</p></div></div>;
-}
-export function AttackSequence({ attack, direction = "player", critical = false }: { attack: AttackProfile; direction?: "player" | "enemy"; critical?: boolean }) {
-  return <div aria-live="polite" className={`run-attack-sequence run-attack-${direction} pointer-events-none absolute inset-x-[10%] top-[28%] z-20 h-24`}><p className="run-attack-callout absolute left-1/2 top-0 -translate-x-1/2 whitespace-nowrap rounded-full border-2 border-[#172539] bg-[#f7f1e7] px-3 py-1 font-mono text-[10px] font-black uppercase text-[#172539] shadow-[2px_2px_0_#172539]">{critical ? "PERFECT · " : ""}{attack.name}</p><div className={`run-attack-projectile run-attack-style-${attack.style} ${critical ? "run-attack-critical" : ""}`}><span>{attack.style === "flame" ? "✦" : attack.style === "frost" ? "✧" : attack.style === "electric" ? "ϟ" : attack.style === "nature" ? "✤" : attack.style === "virus" ? "✹" : attack.style === "sonic" ? "◌" : "◆"}</span></div><i className={`run-attack-impact run-attack-style-${attack.style}`} /></div>;
+export function EvolutionOverlay({ sourceImage, targetImage, targetName }: { sourceImage?: string; targetImage?: string; targetName: string }) {
+  return <div role="status" aria-live="polite" className="absolute inset-0 z-30 grid place-items-center overflow-hidden rounded-[1.6rem] bg-[#172539]/95 px-4 text-center text-white">
+    <div className="run-evo-flash absolute inset-0" />
+    <div className="run-evo-scanline absolute inset-0" />
+    <Image aria-hidden="true" src="/assets/rift/evolution-sigil.png" alt="" width={480} height={480} unoptimized className="run-evo-sigil pointer-events-none absolute size-[min(78vw,30rem)] object-contain" />
+    {Array.from({ length: 26 }).map((_, index) => <i key={index} className="run-evo-particle absolute size-1 rounded-full bg-[#fdcc48]" style={{ left: `${6 + (index * 31) % 88}%`, top: `${5 + (index * 43) % 88}%`, animationDelay: `${index * -0.045}s` }} />)}
+    <div className="relative z-10 grid min-h-64 place-items-center">
+      <p className="run-evo-kicker absolute top-2 font-mono text-[10px] font-black uppercase tracking-[.22em] text-[#fdcc48]">Secuencia EVO · enlace confirmado</p>
+      <div className="relative grid size-44 place-items-center sm:size-52">
+        <span className="run-evo-ring absolute inset-3 rounded-full border-2 border-[#79c8ea]" />
+        <span className="run-evo-ring run-evo-ring-delayed absolute inset-8 rounded-full border-2 border-[#fdcc48]" />
+        {sourceImage && <Image src={sourceImage} alt="" width={180} height={180} unoptimized className="run-evo-source absolute size-28 object-contain sm:size-36" />}
+        {targetImage && <Image src={targetImage} alt="" width={190} height={190} unoptimized className="run-evo-target absolute size-32 object-contain sm:size-40" />}
+      </div>
+      <div className="run-evo-name absolute bottom-2"><p className="font-mono text-[9px] font-black uppercase tracking-[.18em] text-white/70">Nueva forma estabilizada</p><p className="mt-1 font-mono text-lg font-black uppercase text-white sm:text-xl">{targetName}</p></div>
+    </div>
+  </div>;
 }
 
+export function AttackSequence({ attack, direction = "player", critical = false }: { attack: AttackProfile; direction?: "player" | "enemy"; critical?: boolean }) {
+  return <div aria-live="polite" className={`run-attack-sequence run-attack-${direction} pointer-events-none absolute inset-x-[10%] top-[28%] z-20 h-24`}><p className="run-attack-callout absolute left-1/2 top-0 -translate-x-1/2 whitespace-nowrap rounded-full border-2 border-[#172539] bg-[#f7f1e7] px-3 py-1 font-mono text-[10px] font-black uppercase text-[#172539] shadow-[2px_2px_0_#172539]">{critical ? "PERFECT · " : ""}{attack.name}</p><div className={`run-attack-projectile run-attack-style-${attack.style} ${critical ? "run-attack-critical" : ""}`}><Image aria-hidden="true" src="/assets/rift/technique-shards.png" alt="" width={120} height={120} unoptimized className="run-attack-vfx size-14 max-w-none object-contain" /></div><i className={`run-attack-impact run-attack-style-${attack.style}`} /></div>;
+}
 export function TimingMeter({ technique, onResolve, onCancel }: { technique: AttackProfile; onResolve: (multiplier: number, label: "PERFECT" | "GOOD" | "NORMAL") => void; onCancel: () => void }) {
   const [position, setPosition] = useState(0);
   const animationRef = useRef(0);

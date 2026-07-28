@@ -18,9 +18,15 @@ button, a { -webkit-tap-highlight-color: transparent; }
 @keyframes damage-float { 0% { opacity: 0; transform: translateY(12px) scale(.8); } 18% { opacity: 1; } 100% { opacity: 0; transform: translateY(-33px) scale(1.12); } }
 @keyframes scan-glitch { 0%, 100% { filter: none; transform: translateX(0); } 20% { filter: hue-rotate(35deg) contrast(1.35); transform: translateX(2px); } 40% { filter: brightness(1.7); transform: translateX(-2px); } }
 @keyframes orbit-module { from { transform: rotate(0deg) translateX(30px) rotate(0deg); } to { transform: rotate(360deg) translateX(30px) rotate(-360deg); } }
-@keyframes evo-flash { 0%, 100% { opacity: 0; } 34%, 58% { opacity: .95; } }
-@keyframes evo-silhouette { 0% { opacity: .2; transform: scale(.72); filter: brightness(0); } 55% { opacity: 1; transform: scale(1.22); filter: brightness(3); } 100% { opacity: .75; transform: scale(1); filter: brightness(0); } }
-@keyframes evo-particle { from { transform: translateY(15px) scale(.3); opacity: 0; } 35% { opacity: 1; } to { transform: translateY(-85px) scale(1.5); opacity: 0; } }
+@keyframes evo-flash { 0%, 100% { opacity: 0; } 41%, 61% { opacity: .96; } }
+@keyframes evo-source { 0%, 30% { opacity: 1; transform: scale(1); filter: contrast(1) brightness(1); } 56% { opacity: .35; transform: scale(1.38); filter: brightness(3.5) saturate(0); } 100% { opacity: 0; transform: scale(.45); filter: brightness(4); } }
+@keyframes evo-target { 0%, 47% { opacity: 0; transform: scale(.42); filter: brightness(4) saturate(0); } 67% { opacity: 1; transform: scale(1.22); filter: brightness(2.2); } 100% { opacity: 1; transform: scale(1); filter: brightness(1); } }
+@keyframes evo-sigil { from { transform: rotate(0deg) scale(.72); opacity: .15; } 56% { transform: rotate(205deg) scale(1.08); opacity: 1; } to { transform: rotate(360deg) scale(.98); opacity: .72; } }
+@keyframes evo-ring { from { transform: scale(.42) rotate(0deg); opacity: .15; } 55% { transform: scale(1.22) rotate(150deg); opacity: 1; } to { transform: scale(1.62) rotate(310deg); opacity: 0; } }
+@keyframes evo-particle { from { transform: translateY(22px) scale(.25); opacity: 0; } 32% { opacity: 1; } to { transform: translateY(-110px) scale(1.65); opacity: 0; } }
+@keyframes evo-scanline { from { transform: translateY(-100%); } to { transform: translateY(100%); } }
+@keyframes evo-kicker { 0%, 23% { opacity: 0; transform: translateY(-6px); } 38%, 100% { opacity: 1; transform: translateY(0); } }
+@keyframes evo-name { 0%, 56% { opacity: 0; transform: translateY(10px) scale(.92); } 75%, 100% { opacity: 1; transform: translateY(0) scale(1); } }
 
 .rift-background { background-image: linear-gradient(rgba(121,200,234,.08) 1px, transparent 1px), linear-gradient(90deg, rgba(253,204,72,.07) 1px, transparent 1px); background-size: 22px 22px, 44px 44px; animation: rift-drift 10s linear infinite; }
 .run-fighter-attack { animation: run-strike 360ms ease-out; }
@@ -65,3 +71,6 @@ button, a { -webkit-tap-highlight-color: transparent; }
 }
 @keyframes rift-fighter-enter { from { opacity: 0; transform: translateY(14px) scale(.96); filter: brightness(1.4); } to { opacity: 1; transform: translateY(0) scale(1); filter: brightness(1); } }
 .rift-fighter-enter { animation: rift-fighter-enter 420ms cubic-bezier(.22,1,.36,1) both; }
+.rift-boss-core { animation: rift-boss-pulse 1.6s ease-in-out infinite; filter: drop-shadow(0 0 9px rgba(243,109,87,.75)); }
+@keyframes rift-boss-pulse { 0%, 100% { transform: scale(1) rotate(0deg); } 50% { transform: scale(1.1) rotate(6deg); } }
+.run-attack-vfx { filter: drop-shadow(0 0 5px currentColor); }
